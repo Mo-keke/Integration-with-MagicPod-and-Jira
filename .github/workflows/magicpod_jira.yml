@@ -1,0 +1,28 @@
+name: MagicPod Test with Jira Integration
+
+# on: [push]
+on: workflow_dispatch
+
+jobs:
+  magic_pod_job:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Batch run test
+        env:
+          MAGICPOD_API_TOKEN: ${{ secrets.MAGICPOD_API_TOKEN }}
+        run: |
+          bash run_magicpod_test.sh
+      
+      - name: Get batch run results and create Jira issues for failures
+        if: always()
+        env:
+          MAGICPOD_API_TOKEN: ${{ secrets.MAGICPOD_API_TOKEN }}
+          JIRA_URL: ${{ secrets.JIRA_URL }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_PROJECT_KEY: ${{ secrets.JIRA_PROJECT_KEY }}
+        run: |
+          bash create_jira_issues.sh
