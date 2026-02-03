@@ -11,6 +11,21 @@ export MAGICPOD_PROJECT=hands-on
 
 TEST_SETTING_NUMBER=5
 
-RESULT=$(./magicpod-api-client batch-run -S ${TEST_SETTING_NUMBER})
+# -e オプションを一時的に無効化
+set +e
 
-echo "${RESULT}"
+# バッチ実行
+./magicpod-api-client batch-run -S ${TEST_SETTING_NUMBER}
+EXIT_CODE=$?
+
+# -e オプションを再度有効化
+set -e
+
+echo "=== テスト結果 ==="
+if [ ${EXIT_CODE} -ne 0 ]; then
+  echo "テスト失敗を検出 (exit code: ${EXIT_CODE})"
+  exit 1
+else
+  echo "テスト成功"
+  exit 0
+fi
