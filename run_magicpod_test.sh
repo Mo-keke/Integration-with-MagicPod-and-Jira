@@ -11,4 +11,6 @@ export MAGICPOD_PROJECT=hands-on
 
 TEST_SETTING_NUMBER=5
 
-./magicpod-api-client batch-run -S ${TEST_SETTING_NUMBER}
+RESULT=$(./magicpod-api-client batch-run -S ${TEST_SETTING_NUMBER})
+
+echo "${RESULT}"
