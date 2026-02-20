@@ -24,32 +24,30 @@ if [ ${EXIT_CODE} -ne 0 ]; then
   echo "テストが成功しませんでした (exit code: ${EXIT_CODE})"
   echo ""
   echo "=== 失敗したテストのJira Issue作成 ==="
-  
+
   # 最新のバッチ実行番号を取得
-  BATCH_RUNS_RESPONSE=$(curl -s "https://app.magicpod.com/api/v1.0/${MAGICPOD_ORGANIZATION}/${MAGICPOD_PROJECT}/batch-run/" \
-    -H "Authorization: Token ${MAGICPOD_API_TOKEN}")
+  LATEST_BATCH_RUN_INFO=$(curl -X 'GET' \
+      "https://app.magicpod.com/api/v1.0/${MAGICPOD_ORGANIZATION}/${MAGICPOD_PROJECT}/batch-runs/?count=1&max_batch_run_number=50000" \
+      -H "accept: application/json" \
+      -H "Authorization: Token ${MAGICPOD_API_TOKEN}")
+
+  LATEST_BATCH_RUN_NUMBER=$(echo "${LATEST_BATCH_RUN_INFO}" | jq -r '.batch_runs[0].batch_run_number')
   
-  # デバッグ用: レスポンスを表示
-  echo "API Response (最初の200文字):"
-  echo "${BATCH_RUNS_RESPONSE}" | head -c 200
-  echo ""
-  
-  # バッチ実行番号を取得
-  BATCH_RUN_NUM=$(echo "${BATCH_RUNS_RESPONSE}" | jq -r '.[0].batch_run_number // empty')
-  
-  if [ -z "${BATCH_RUN_NUM}" ]; then
+  if [ -z "${LATEST_BATCH_RUN_NUMBER}" ]; then
     echo "エラー: バッチ実行番号を取得できませんでした"
     exit 1
   fi
-  
-  echo "バッチ実行番号: ${BATCH_RUN_NUM}"
+
+  echo "一括実行番号: ${LATEST_BATCH_RUN_NUMBER}"
   
   # バッチ実行の詳細を取得
-  BATCH_DETAILS=$(curl -s "https://app.magicpod.com/api/v1.0/${MAGICPOD_ORGANIZATION}/${MAGICPOD_PROJECT}/batch-run/${BATCH_RUN_NUM}/" \
-    -H "Authorization: Token ${MAGICPOD_API_TOKEN}")
+  LATEST_BATCH_RUN_DETAILS=$(curl -X 'GET' \
+      "https://app.magicpod.com/api/v1.0/MagicPod_Sakakibara/hands-on/batch-run/${LATEST_BATCH_RUN_NUMBER}/" \
+      -H "accept: application/json" \
+      -H "Authorization: Token ${MAGICPOD_API_TOKEN}")
   
   # 失敗したテストケース番号のリストを取得
-  FAILED_TESTS=$(echo "${BATCH_DETAILS}" | jq -r '.test_cases.details[]? | select(.status == "failed" or .status == "unresolved") | .test_case_number' 2>/dev/null)
+  FAILED_TESTS=$(echo "${LATEST_BATCH_RUN_DETAILS}" | jq -r '.test_cases.details[]? | select(.status == "failed" or .status == "unresolved") | .test_case_number' 2>/dev/null)
   
   # 失敗がなければ終了
   if [ -z "${FAILED_TESTS}" ]; then
