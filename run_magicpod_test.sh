@@ -33,7 +33,7 @@ if [ ${EXIT_CODE} -ne 0 ]; then
 
   LATEST_BATCH_RUN_NUMBER=$(echo "${LATEST_BATCH_RUN_INFO}" | jq -r '.batch_runs[0].batch_run_number')
   
-  if [ -z "${LATESTBATCH_RUN_NUMBER}" ]; then
+  if [ -z "${LATEST_BATCH_RUN_NUMBER}" ]; then
     echo "エラー: バッチ実行番号を取得できませんでした"
     exit 1
   fi
