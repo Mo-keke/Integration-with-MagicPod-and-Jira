@@ -33,7 +33,7 @@ if [ ${EXIT_CODE} -ne 0 ]; then
 
   LATEST_BATCH_RUN_NUMBER=$(echo "${LATEST_BATCH_RUN_INFO}" | jq -r '.batch_runs[0].batch_run_number')
   
-  if [ -z "${LATEST_BATCH_RUN_NUMBER}" ]; then
+  if [ -z "${LATESTBATCH_RUN_NUMBER}" ]; then
     echo "エラー: バッチ実行番号を取得できませんでした"
     exit 1
   fi
@@ -41,13 +41,17 @@ if [ ${EXIT_CODE} -ne 0 ]; then
   echo "一括実行番号: ${LATEST_BATCH_RUN_NUMBER}"
   
   # バッチ実行の詳細を取得
-  LATEST_BATCH_RUN_DETAILS=$(curl -X 'GET' \
+  BATCH_RUN_DETAILS=$(curl -X 'GET' \
       "https://app.magicpod.com/api/v1.0/MagicPod_Sakakibara/hands-on/batch-run/${LATEST_BATCH_RUN_NUMBER}/" \
       -H "accept: application/json" \
       -H "Authorization: Token ${MAGICPOD_API_TOKEN}")
   
   # 失敗したテストケース番号のリストを取得
-  FAILED_TESTS=$(echo "${LATEST_BATCH_RUN_DETAILS}" | jq -r '.test_cases.details[] | .pattern.number | .results[] | select(.status == "failed" or .status == "unresolved") | .test_case_number' 2>/dev/null)
+  FAILED_TESTS=$(echo "${BATCH_RUN_DETAILS}" | jq -r '
+    .test_cases.details[].results[] | 
+    select(.status == "failed" or .status == "unresolved") | 
+    .test_case.number
+  ' | sort -u)
   
   # 失敗がなければ終了
   if [ -z "${FAILED_TESTS}" ]; then
@@ -62,7 +66,7 @@ if [ ${EXIT_CODE} -ne 0 ]; then
     echo "テストケース #${TEST_NUM} のIssue作成中..."
 
     # 変数名を修正（MAGICPOD_ORGANIZATION と MAGICPOD_PROJECT を使用）
-    RESULT_URL="https://app.magicpod.com/${MAGICPOD_ORGANIZATION}/${MAGICPOD_PROJECT}/batch-run/${BATCH_RUN_NUM}/${TEST_NUM}/1/0/"
+    RESULT_URL="https://app.magicpod.com/${MAGICPOD_ORGANIZATION}/${MAGICPOD_PROJECT}/batch-run/${LATEST_BATCH_RUN_NUMBER}/${TEST_NUM}/"
 
     JIRA_RESPONSE=$(curl -s -X POST "${JIRA_URL}/rest/api/3/issue" \
       -u "${JIRA_EMAIL}:${JIRA_API_TOKEN}" \
