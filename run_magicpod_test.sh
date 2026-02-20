@@ -26,7 +26,7 @@ if [ ${EXIT_CODE} -ne 0 ]; then
   echo "=== 失敗したテストのJira Issue作成 ==="
 
   # 最新のバッチ実行番号を取得
-  LATEST_BATCH_RUN_INFO=$(curl -X 'GET' \
+  LATEST_BATCH_RUN_INFO=$(curl -s -X 'GET' \
       "https://app.magicpod.com/api/v1.0/${MAGICPOD_ORGANIZATION}/${MAGICPOD_PROJECT}/batch-runs/?count=1&max_batch_run_number=50000" \
       -H "accept: application/json" \
       -H "Authorization: Token ${MAGICPOD_API_TOKEN}")
@@ -41,7 +41,7 @@ if [ ${EXIT_CODE} -ne 0 ]; then
   echo "一括実行番号: ${LATEST_BATCH_RUN_NUMBER}"
   
   # バッチ実行の詳細を取得
-  BATCH_RUN_DETAILS=$(curl -X 'GET' \
+  BATCH_RUN_DETAILS=$(curl -s -X 'GET' \
       "https://app.magicpod.com/api/v1.0/MagicPod_Sakakibara/hands-on/batch-run/${LATEST_BATCH_RUN_NUMBER}/" \
       -H "accept: application/json" \
       -H "Authorization: Token ${MAGICPOD_API_TOKEN}")
