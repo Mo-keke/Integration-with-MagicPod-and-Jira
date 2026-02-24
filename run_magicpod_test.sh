@@ -91,7 +91,39 @@ for TEST_NUM in ${FAILED_TESTS}; do
     \"fields\": {
       \"project\": {\"key\": \"${JIRA_PROJECT_KEY}\"},
       \"summary\": \"[MagicPod] テスト失敗: #${TEST_NUM}\",
-      \"description\": \"テストケース #${TEST_NUM} が失敗しました。\n\n結果: ${RESULT_URL}\",
+      \"description\": {
+        \"type\": \"doc\",
+        \"version\": 1,
+        \"content\": [
+          {
+            \"type\": \"paragraph\",
+            \"content\": [
+              {
+                \"type\": \"text\",
+                \"text\": \"バッチ実行 #${LATEST_BATCH_RUN_NUMBER} でテストケース #${TEST_NUM} が失敗しました。\"
+              }
+            ]
+          },
+          {
+            \"type\": \"paragraph\",
+            \"content\": [
+              {
+                \"type\": \"text\",
+                \"text\": \"結果URL: \",
+                \"marks\": [{\"type\": \"strong\"}]
+              },
+              {
+                \"type\": \"text\",
+                \"text\": \"${RESULT_URL}\",
+                \"marks\": [{
+                  \"type\": \"link\",
+                  \"attrs\": {\"href\": \"${RESULT_URL}\"}
+                }]
+              }
+            ]
+          }
+        ]
+      },
       \"issuetype\": {\"name\": \"タスク\"},
       \"labels\": [\"magicpod\", \"test-failure\"]
     }
