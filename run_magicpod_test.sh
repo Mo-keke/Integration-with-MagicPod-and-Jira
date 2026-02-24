@@ -84,18 +84,18 @@ for TEST_NUM in ${FAILED_TESTS}; do
   
   # Jira API呼び出し（エラーでも継続）
   set +e
-  JIRA_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${JIRA_URL}/rest/api/3/issue" \
-    -u "${JIRA_EMAIL}:${JIRA_API_TOKEN}" \
-    -H "Content-Type: application/json" \
-    -d "{
-      \"fields\": {
-        \"project\": {\"key\": \"${JIRA_PROJECT_KEY}\"},
-        \"summary\": \"[MagicPod] テスト失敗: #${TEST_NUM}\",
-        \"description\": \"テストケース #${TEST_NUM} が失敗しました。\n\n結果: ${RESULT_URL}\",
-        \"issuetype\": {\"name\": \"Bug\"},
-        \"labels\": [\"magicpod\", \"test-failure\"]
-      }
-    }")
+  JIRA_RESPONSE=$(curl -s -L -w "\n%{http_code}" -X POST "${JIRA_URL}/rest/api/3/issue" \
+  -u "${JIRA_EMAIL}:${JIRA_API_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"fields\": {
+      \"project\": {\"key\": \"${JIRA_PROJECT_KEY}\"},
+      \"summary\": \"[MagicPod] テスト失敗: #${TEST_NUM}\",
+      \"description\": \"テストケース #${TEST_NUM} が失敗しました。\n\n結果: ${RESULT_URL}\",
+      \"issuetype\": {\"name\": \"タスク\"},
+      \"labels\": [\"magicpod\", \"test-failure\"]
+    }
+  }")
   CURL_EXIT_CODE=$?
   set -e
   
