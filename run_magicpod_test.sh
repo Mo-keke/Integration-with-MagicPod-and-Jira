@@ -62,7 +62,7 @@ if [ ${EXIT_CODE} -ne 0 ]; then
   echo "=== 失敗テスト検出 ==="
   
   # 失敗した各テストに対してJira Issueを作成
-  for TEST_NUM in ${FAILED_TESTS}; do
+for TEST_NUM in ${FAILED_TESTS}; do
   echo "テストケース #${TEST_NUM} のIssue作成中..."
   
   # 変数名を修正（MAGICPOD_ORGANIZATION と MAGICPOD_PROJECT を使用）
@@ -77,9 +77,14 @@ if [ ${EXIT_CODE} -ne 0 ]; then
     continue
   fi
   
+  # デバッグ情報
+  echo "Jira URL: ${JIRA_URL}"
+  echo "Jira Email: ${JIRA_EMAIL}"
+  echo "Project Key: ${JIRA_PROJECT_KEY}"
+  
   # Jira API呼び出し（エラーでも継続）
   set +e
-  JIRA_RESPONSE=$(curl -s -X POST "${JIRA_URL}/rest/api/3/issue" \
+  JIRA_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${JIRA_URL}/rest/api/3/issue" \
     -u "${JIRA_EMAIL}:${JIRA_API_TOKEN}" \
     -H "Content-Type: application/json" \
     -d "{
@@ -94,17 +99,26 @@ if [ ${EXIT_CODE} -ne 0 ]; then
   CURL_EXIT_CODE=$?
   set -e
   
+  # HTTPステータスコードを取得
+  HTTP_CODE=$(echo "${JIRA_RESPONSE}" | tail -n1)
+  RESPONSE_BODY=$(echo "${JIRA_RESPONSE}" | sed '$d')
+  
+  echo "HTTP Status: ${HTTP_CODE}"
+  echo "Response Body: ${RESPONSE_BODY}"
+  
   # Issue作成結果を表示
   if [ ${CURL_EXIT_CODE} -ne 0 ]; then
     echo "✗ Jira API呼び出し失敗 (exit code: ${CURL_EXIT_CODE})"
-  else
-    ISSUE_KEY=$(echo "${JIRA_RESPONSE}" | jq -r '.key // empty')
+  elif [ "${HTTP_CODE}" = "201" ]; then
+    ISSUE_KEY=$(echo "${RESPONSE_BODY}" | jq -r '.key // empty')
     if [ -n "${ISSUE_KEY}" ]; then
       echo "✓ Issue作成成功: ${ISSUE_KEY}"
     else
-      echo "✗ Issue作成失敗"
-      echo "エラー詳細: ${JIRA_RESPONSE}"
+      echo "✗ Issue作成失敗（レスポンスにkeyがありません）"
     fi
+  else
+    echo "✗ Issue作成失敗 (HTTP ${HTTP_CODE})"
+    echo "エラー詳細: ${RESPONSE_BODY}"
   fi
 done
 
