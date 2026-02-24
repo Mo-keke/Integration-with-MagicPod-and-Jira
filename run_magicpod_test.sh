@@ -62,7 +62,7 @@ if [ ${EXIT_CODE} -ne 0 ]; then
   echo "=== 失敗テスト検出 ==="
   
   # 失敗した各テストに対してJira Issueを作成
-for TEST_NUM in ${FAILED_TESTS}; do
+  for TEST_NUM in ${FAILED_TESTS}; do
   echo "テストケース #${TEST_NUM} のIssue作成中..."
   
   # 変数名を修正（MAGICPOD_ORGANIZATION と MAGICPOD_PROJECT を使用）
@@ -107,3 +107,12 @@ for TEST_NUM in ${FAILED_TESTS}; do
     fi
   fi
 done
+
+  echo ""
+  echo "=== 完了 ==="
+  exit 1
+
+else
+  echo "✓ テスト成功"
+  exit 0
+fi
